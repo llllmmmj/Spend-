@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="理性消费">
+<meta name="theme-color" content="#f2f4f8">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>理性消费助手</title>
+<style>
+  :root{
+    --bg:#f2f4f8; --card:#ffffff; --card2:#f4f6fa; --line:#e3e7ee;
+    --txt:#1c2430; --sub:#6b7684; --accent:#2f6bff; --ok:#12a06a;
+    --warn:#c8801a; --bad:#dc4b4b;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg); color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",Arial,sans-serif;
+    font-size:16px; line-height:1.5; padding:0 14px calc(80px + var(--safe-bottom));
+    padding-top:calc(8px + var(--safe-top));
+    max-width:640px; margin:0 auto;
+    -webkit-text-size-adjust:100%;
+  }
+  h1{font-size:20px;margin:10px 0 4px;display:flex;align-items:center;gap:8px;}
+  h1 .logo{font-size:22px;}
+  .muted{color:var(--sub);font-size:13px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:12px 0;
+    box-shadow:0 1px 2px rgba(20,30,50,.04);}
+  .row{display:flex;gap:10px;}
+  .row>*{flex:1;}
+  label{display:block;font-size:13px;color:var(--sub);margin:10px 0 6px;}
+  input,select,textarea{
+    width:100%;background:var(--card2);color:var(--txt);border:1px solid var(--line);
+    border-radius:10px;padding:11px 12px;font-size:16px;font-family:inherit;outline:none;
+  }
+  input:focus,select,textarea:focus{border-color:var(--accent);background:#fff;}
+  textarea{resize:vertical;min-height:60px;}
+  .seg{display:flex;gap:8px;flex-wrap:wrap;}
+  .seg button{
+    flex:1;min-width:56px;background:var(--card2);border:1px solid var(--line);color:var(--sub);
+    border-radius:10px;padding:10px 6px;font-size:14px;font-family:inherit;
+  }
+  .seg button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+  .seg.two button{min-width:0;}
+  button{cursor:pointer;}
+  .btn{
+    display:block;width:100%;border:none;border-radius:12px;padding:14px;font-size:16px;
+    font-weight:600;font-family:inherit;background:var(--accent);color:#fff;margin-top:14px;
+  }
+  .btn.ghost{background:var(--card2);color:var(--txt);border:1px solid var(--line);}
+  .btn.ok{background:var(--ok);}
+  .btn.bad{background:var(--bad);}
+  .btn.sm{padding:9px 12px;font-size:14px;width:auto;display:inline-block;margin:0;}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .stat{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;}
+  .stat b{display:block;font-size:20px;margin-top:2px;}
+  .stat .lbl{font-size:12px;color:var(--sub);}
+  .item{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:10px 0;
+    box-shadow:0 1px 2px rgba(20,30,50,.04);}
+  .item .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .item .name{font-weight:600;font-size:16px;word-break:break-word;}
+  .item .price{font-weight:700;font-size:16px;white-space:nowrap;}
+  .badges{margin:8px 0 4px;display:flex;gap:6px;flex-wrap:wrap;}
+  .badge{font-size:11px;padding:3px 8px;border-radius:999px;background:var(--card2);color:var(--sub);border:1px solid var(--line);}
+  .badge.cool{color:#1f4fbf;border-color:#bcd0ff;background:#eaf1ff;}
+  .badge.bought{color:#0f8a5b;border-color:#b4e6cf;background:#e8f8f1;}
+  .badge.dropped{color:#6b7684;border-color:var(--line);background:var(--card2);}
+  .badge.skip{color:#c93b3b;border-color:#f3c2c2;background:#fdeeee;}
+  .badge.inbox{color:#a9700f;border-color:#f0d9a8;background:#fdf4e3;}
+  .badge.exp{color:#7a4fd0;border-color:#d8c6f5;background:#f3ecff;}
+  .badge.sub{color:#a9700f;border-color:#f0d9a8;background:#fdf4e3;}
+  .note{font-size:13px;color:var(--sub);margin:6px 0 0;white-space:pre-wrap;word-break:break-word;}
+  .actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+  .bar{height:8px;background:var(--card2);border-radius:6px;overflow:hidden;border:1px solid var(--line);}
+  .bar>i{display:block;height:100%;border-radius:6px;}
+  .empty{text-align:center;color:var(--sub);padding:30px 10px;font-size:14px;}
+  .tabbar{
+    position:fixed;left:0;right:0;bottom:0;display:flex;background:rgba(255,255,255,.94);
+    border-top:1px solid var(--line);backdrop-filter:blur(10px);padding-bottom:var(--safe-bottom);z-index:20;
+  }
+  .tabbar button{
+    flex:1;background:none;border:none;color:var(--sub);font-size:11px;padding:8px 0 10px;
+    font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative;
+  }
+  .tabbar button .ic{font-size:20px;}
+  .tabbar button.on{color:var(--accent);}
+  .tabbar .dot{position:absolute;top:4px;right:calc(50% - 20px);min-width:16px;height:16px;border-radius:999px;
+    background:var(--bad);color:#fff;font-size:10px;line-height:16px;padding:0 4px;font-weight:700;}
+  .page{display:none;}
+  .page.on{display:block;}
+  .hint{font-size:12px;color:var(--sub);background:var(--card2);border:1px dashed var(--line);
+    border-radius:10px;padding:10px;margin-top:10px;}
+  .oc{background:#eaf1ff;border:1px solid #bcd0ff;border-radius:12px;padding:12px;margin-top:12px;font-size:13px;color:#27364d;}
+  .oc b{color:#1f4fbf;}
+  .oc .line{margin:4px 0;}
+  .verdict{border-radius:12px;padding:12px;margin-top:12px;font-weight:600;}
+  .verdict.ok{background:#e8f8f1;color:#0f8a5b;border:1px solid #b4e6cf;}
+  .verdict.warn{background:#fdf4e3;color:#a9700f;border:1px solid #f0d9a8;}
+  .verdict.bad{background:#fdeeee;color:#c93b3b;border:1px solid #f3c2c2;}
+  .verdict small{display:block;font-weight:400;font-size:13px;margin-top:4px;color:var(--txt);opacity:.85;}
+  .flex-between{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .link{color:var(--accent);background:none;border:none;font-size:14px;font-family:inherit;padding:4px;}
+  details summary{cursor:pointer;font-size:14px;color:var(--sub);}
+  .modal{position:fixed;inset:0;background:rgba(20,28,40,.45);display:none;z-index:50;
+    padding:calc(20px + var(--safe-top)) 14px calc(20px + var(--safe-bottom));overflow:auto;}
+  .modal.on{display:block;}
+  .modal .sheet{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;max-width:600px;margin:0 auto;
+    box-shadow:0 12px 40px rgba(20,30,50,.18);}
+  .chip{display:inline-block;font-size:12px;padding:4px 10px;border-radius:999px;background:var(--card2);
+    border:1px solid var(--line);color:var(--sub);margin:0 6px 6px 0;}
+  .goalbox{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:12px;}
+  .goalbox .gname{font-size:14px;font-weight:600;}
+  .goalbox .grow{display:flex;justify-content:space-between;font-size:12px;color:var(--sub);margin:8px 0 6px;}
+  .toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;
+    background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;
+    font-size:15px;font-family:inherit;color:var(--sub);text-align:left;}
+  .toggle.on{background:#eaf1ff;border-color:#bcd0ff;color:#1f4fbf;font-weight:600;}
+  .toggle .knob{width:40px;height:24px;border-radius:999px;background:#cdd4de;position:relative;transition:.15s;flex:0 0 auto;}
+  .toggle .knob::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.15s;box-shadow:0 1px 2px rgba(0,0,0,.25);}
+  .toggle.on .knob{background:var(--accent);}
+  .toggle.on .knob::after{left:19px;}
+  .cbrow{margin:10px 0;}
+  .cbrow .cbhead{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;}
+  .cbrow .cbhead .amt{color:var(--sub);}
+  .cbrow .cbhead .amt.over{color:var(--bad);font-weight:600;}
+  .wkitem{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:8px 0;border-bottom:1px solid var(--line);}
+  .wkitem:last-child{border-bottom:none;}
+  .meta{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--sub);margin-top:8px;}
+  .sectionh{display:flex;justify-content:space-between;align-items:center;margin:20px 4px 8px;font-size:14px;font-weight:700;}
+  .sectionh .cnt{color:var(--sub);font-weight:400;font-size:12px;}
+  .toast{position:fixed;left:50%;bottom:calc(92px + var(--safe-bottom));transform:translateX(-50%) translateY(12px);
+    background:#1c2430;color:#fff;padding:11px 18px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;
+    transition:.25s;z-index:60;max-width:90%;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.28);}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+  .toast.has-action{pointer-events:auto;display:flex;align-items:center;gap:12px;text-align:left;}
+  .toastbtn{flex:0 0 auto;background:var(--accent);color:#fff;border:none;border-radius:999px;
+    padding:7px 14px;font-size:13px;font-weight:700;font-family:inherit;}
+  .bigcount{font-size:13px;color:var(--sub);margin-top:2px;}
+  .bigcount b{color:var(--accent);font-size:15px;}
+  /* 拖动分拣 */
+  .grip{display:flex;align-items:center;justify-content:center;gap:6px;flex:1;color:var(--sub);
+    font-size:13px;font-weight:600;border:1px dashed var(--line);background:var(--card2);
+    border-radius:10px;padding:10px;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;}
+  .grip:active{background:#eef2f8;}
+  .item.dragging{opacity:.3;}
+  .dragghost{position:fixed;z-index:70;pointer-events:none;opacity:.96;
+    transform:rotate(-1.5deg) scale(1.02);box-shadow:0 16px 44px rgba(20,30,50,.32);}
+  .dropzones{position:fixed;left:14px;right:14px;bottom:calc(78px + var(--safe-bottom));
+    display:flex;gap:12px;z-index:40;transform:translateY(150%);opacity:0;transition:.18s ease;pointer-events:none;}
+  body.dragging-active .dropzones{transform:translateY(0);opacity:1;pointer-events:auto;}
+  .dropzone{flex:1;border-radius:16px;padding:14px 10px;text-align:center;font-size:14px;font-weight:700;
+    border:2px dashed;background:rgba(255,255,255,.97);box-shadow:0 10px 34px rgba(20,30,50,.22);
+    transition:transform .1s,background .1s;}
+  .dropzone .em{font-size:22px;display:block;margin-bottom:4px;}
+  .dz-drop{border-color:#f3c2c2;color:#c93b3b;}
+  .dz-drop.over{background:#fdeeee;border-style:solid;transform:scale(1.05);}
+  .dz-cool{border-color:#bcd0ff;color:#1f4fbf;}
+  .dz-cool.over{background:#eaf1ff;border-style:solid;transform:scale(1.05);}
+  .dz-hint{font-size:11px;font-weight:400;color:var(--sub);margin-top:2px;}
+</style>
+</head>
+<body>
+
+<h1><span class="logo">🧊</span> 理性消费助手</h1>
+<div class="muted">先捕捉念头 · 再筛选 · 冷静后判断。别被购物软件牵着走。</div>
+
+<!-- ============ 第一步：捕捉 ============ -->
+<section id="page-add" class="page on">
+  <div class="card">
+    <b>捕捉一个想买东西的念头</b>
+    <div class="bigcount" id="todayCount"></div>
+
+    <label>想买什么？</label>
+    <input id="f-name" placeholder="例如：无线降噪耳机" autocomplete="off" enterkeyhint="done">
+
+    <label>多少钱？（可不填）</label>
+    <input id="f-price" type="number" inputmode="decimal" placeholder="先不填也行">
+
+    <button class="btn" id="addBtn">记下这个念头</button>
+
+    <details style="margin-top:14px">
+      <summary>➕ 补充信息（可选，1 秒的事）</summary>
+      <label>在哪看到的？</label>
+      <select id="f-channel"></select>
+      <label>分类（可选）</label>
+      <select id="f-cat"></select>
+      <label>念头从哪来？</label>
+      <div class="seg" data-field="source">
+        <button data-v="need">早就需要</button><button data-v="ad">刷到/被种草</button>
+        <button data-v="sale">打折促销</button><button data-v="mood">心情不好/无聊</button>
+        <button data-v="peer">看到别人有</button>
+      </div>
+      <label>备注</label>
+      <textarea id="f-why" placeholder="当时的场景、心情…（可不填）"></textarea>
+    </details>
+
+    <div class="hint">只填「想买什么」就能记下。别在这一步做判断——先捕捉，让它进池子。</div>
+    <div id="ocBox"></div>
+  </div>
+
+  <div class="card">
+    <details>
+      <summary>⚙️ 我的参数（用于打分，只存本机）</summary>
+      <label>税后月收入（元）—— 换算「要工作多少小时」</label>
+      <input id="f-income" type="number" inputmode="decimal" placeholder="例如：8000">
+      <label>每月可自由支配的钱（元）—— 判断价格压力</label>
+      <input id="f-budget" type="number" inputmode="decimal" placeholder="例如：3000">
+      <label>存钱目标名称</label>
+      <input id="f-goalname" placeholder="例如：旅行基金 / 应急金">
+      <label>目标金额（元）</label>
+      <input id="f-goalamount" type="number" inputmode="decimal" placeholder="例如：20000">
+      <button class="btn ghost" id="saveSettings">保存参数</button>
+      <div class="muted" id="settingsShow" style="margin-top:8px"></div>
+    </details>
+  </div>
+</section>
+
+<!-- ============ 第二步：念头池 ============ -->
+<section id="page-pool" class="page">
+  <div class="card" style="padding:12px 14px">
+    <div class="flex-between">
+      <b>📋 念头池</b>
+      <span class="muted" id="poolSummary"></span>
+    </div>
+    <div class="muted" style="margin-top:4px" id="poolHint">盯着「待处理」清空它：按住卡片右侧把手，往下方拖动分拣。</div>
+  </div>
+  <div id="poolWrap"></div>
+  <div class="dropzones" id="dropzones">
+    <div class="dropzone dz-drop" data-zone="drop">
+      <span class="em">🗑️</span>不需要 · 剔除<div class="dz-hint">省下这笔钱</div>
+    </div>
+    <div class="dropzone dz-cool" data-zone="cool">
+      <span class="em">🧊</span>还想要 · 进冷静期<div class="dz-hint">过几天再判断</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 采购清单 ============ -->
+<section id="page-buy" class="page">
+  <div class="card" style="padding:12px 14px">
+    <div class="flex-between">
+      <b>🛒 采购清单</b>
+      <span class="muted" id="buySummary"></span>
+    </div>
+    <div class="muted" style="margin-top:4px">冷静后确定要买的东西都在这。买完点「已买到」填实际花费；不想要了随时「不买了」。</div>
+  </div>
+
+  <div class="card" style="padding:12px 14px">
+    <details>
+      <summary>➕ 手动加一条（必须买的，如家里没米了）</summary>
+      <label>要买什么</label>
+      <input id="m-name" placeholder="例如：大米 5kg">
+      <label>预计价格（可不填）</label>
+      <input id="m-price" type="number" inputmode="decimal" placeholder="0">
+      <div class="row">
+        <div><label>渠道</label><select id="m-channel"></select></div>
+        <div><label>分类</label><select id="m-cat"></select></div>
+      </div>
+      <button class="btn ghost" id="manualAdd">加入采购清单</button>
+    </details>
+  </div>
+
+  <div id="buyWrap"></div>
+  <div class="card" id="boughtCard" style="display:none">
+    <details>
+      <summary>✅ 已买到（点开看）</summary>
+      <div id="boughtList" style="margin-top:8px"></div>
+    </details>
+  </div>
+</section>
+
+<!-- ============ 复盘 ============ -->
+<section id="page-review" class="page">
+  <div class="card">
+    <div class="flex-between">
+      <b>📅 本周复盘</b>
+      <span class="muted" id="weekRange"></span>
+    </div>
+    <div class="stats" style="margin-top:12px">
+      <div class="stat"><span class="lbl">本周捕捉念头</span><b id="w-logged">0 个</b></div>
+      <div class="stat"><span class="lbl">本周剔除</span><b id="w-dropped">0 个</b></div>
+      <div class="stat"><span class="lbl">本周送进冷静期</span><b id="w-cooled">0 个</b></div>
+      <div class="stat"><span class="lbl">本周省下</span><b id="w-saved" style="color:var(--ok)">¥0</b></div>
+    </div>
+    <div id="weekBudget"></div>
+  </div>
+
+  <div class="card">
+    <b>📡 刺激来自哪些渠道（本周）</b>
+    <div id="channelList" style="margin-top:8px"></div>
+    <div class="muted" id="channelTop" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card">
+    <b>🛍️ 分类预算（本月）</b>
+    <div class="muted" style="margin-top:4px">给容易超支的类别设上限。</div>
+    <div id="catBudgetList" style="margin-top:12px"></div>
+    <details style="margin-top:14px">
+      <summary>⚙️ 设置分类预算</summary>
+      <div id="catBudgetForm" style="margin-top:10px"></div>
+      <button class="btn ghost" id="saveCatBudgets">保存分类预算</button>
+    </details>
+  </div>
+</section>
+
+<!-- ============ 成绩 ============ -->
+<section id="page-stats" class="page">
+  <div class="card">
+    <b>📊 存钱成绩单（累计）</b>
+    <div class="stats" style="margin-top:12px">
+      <div class="stat"><span class="lbl">放弃 / 剔除，省下</span><b id="s-saved" style="color:var(--ok)">¥0</b></div>
+      <div class="stat"><span class="lbl">念头池待处理</span><b id="s-inbox">0 个</b></div>
+      <div class="stat"><span class="lbl">已买到</span><b id="s-bought">0 件 / ¥0</b></div>
+      <div class="stat"><span class="lbl">理性过滤率</span><b id="s-rate">—</b></div>
+    </div>
+    <div id="goalBox"></div>
+    <div class="hint">理性过滤率 = （剔除 + 冷静后放弃）÷ 所有已处理的念头。越高说明越能扛住冲动。</div>
+  </div>
+
+  <div class="card">
+    <b>🛍️ 累计购买明细（按分类）</b>
+    <div id="catList" class="muted" style="margin-top:8px">还没有已购买记录。</div>
+  </div>
+
+  <div class="card">
+    <details>
+      <summary>📖 判断标准与理论依据（点开看）</summary>
+      <div style="margin-top:10px;font-size:14px;color:var(--sub)">
+        <p><b style="color:var(--txt)">三步流程：</b>① 捕捉念头（越快越好）→ ② 筛选：不需要的剔除，还想要的进冷静期 → ③ 冷静期后做完整判断。</p>
+        <p>完整判断满分 100，来自 6 个维度：</p>
+        <span class="chip">刚需程度 · 20</span>
+        <span class="chip">使用频率 · 20</span>
+        <span class="chip">有无替代 · 12</span>
+        <span class="chip">价格压力 · 16</span>
+        <span class="chip">冷静后是否还想要 · 20</span>
+        <span class="chip">两个月后是否还觉得值 · 12</span>
+        <span class="chip">体验型消费 · +3</span>
+        <span class="chip">冲动来源 · 扣 0–10</span>
+        <p style="margin-top:10px">
+          <b style="color:var(--ok)">≥75 分</b> 建议买；<b style="color:var(--warn)">55–74 分</b> 再等等；<b style="color:var(--bad)">&lt;55 分</b> 建议不买。
+        </p>
+        <hr style="border:none;border-top:1px solid var(--line);margin:14px 0">
+        <span class="chip">记录要快</span> 在冲动当下，任何额外步骤都会让人放弃记录。所以捕捉阶段只要求一个词。<br><br>
+        <span class="chip">冷静期</span> 25 小时以上的延后能显著降低购买冲动（10 分钟无效）。<br><br>
+        <span class="chip">机会成本</span> 把价格换算成「工作小时 / 目标占比」可显著降低购买率（Frederick et al., 2009）。<br><br>
+        <span class="chip">享乐适应</span> 人对新物品的快乐衰减很快且常被高估；体验型消费更持久（Brickman et al., 1978；Carter &amp; Gilovich, 2010）。<br><br>
+        <span class="chip">付款之痛</span> 移动支付削弱了花钱的痛感，用「全价 + 年化 + 累计」加回来（Prelec &amp; Loewenstein, 1998）。<br><br>
+        <span class="chip">渠道追踪</span> 找出最容易让你冲动下单的平台，便于针对性回避。<br><br>
+        <span class="chip">正向激励</span> 用「省下多少」的正反馈比后悔/羞耻更有效。
+      </div>
+    </details>
+  </div>
+
+  <div class="card">
+    <b>💾 备份与恢复</b>
+    <div class="muted" style="margin-top:4px">数据只存在这台设备。建议定期「导出备份文件」并存到手机的「文件」(iCloud)，换手机时再导入。</div>
+    <div class="muted" id="lastBackup" style="margin-top:8px"></div>
+    <div class="actions">
+      <button class="btn sm" id="shareBtn">⬆️ 导出备份文件</button>
+      <button class="btn sm ghost" id="importFileBtn">⬇️ 从文件导入</button>
+    </div>
+    <input type="file" id="fileInput" accept=".json,application/json" style="display:none">
+    <div class="actions">
+      <button class="btn sm ghost" id="copyBtn">复制为文本</button>
+      <button class="btn sm ghost" id="restoreBtn">恢复上一版</button>
+      <button class="btn sm ghost" id="wipeBtn" style="color:var(--bad)">清空全部</button>
+    </div>
+    <textarea id="ioBox" placeholder="备用：备份文本会显示在这里，也可把文本粘贴进来后点「从文本导入」"
+      style="margin-top:10px;min-height:80px;font-size:12px"></textarea>
+    <button class="btn sm ghost" id="pasteImportBtn" style="margin-top:8px">从文本导入</button>
+  </div>
+</section>
+
+<nav class="tabbar">
+  <button class="on" data-page="page-add"><span class="ic">➕</span>捕捉</button>
+  <button data-page="page-pool"><span class="ic">📋</span>念头池<span class="dot" id="tabDot" style="display:none"></span></button>
+  <button data-page="page-buy"><span class="ic">🛒</span>采购</button>
+  <button data-page="page-review"><span class="ic">📅</span>复盘</button>
+  <button data-page="page-stats"><span class="ic">📊</span>成绩</button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<!-- ============ 确认已买到 ============ -->
+<div class="modal" id="paymodal">
+  <div class="sheet">
+    <div class="flex-between">
+      <b>确认已买到</b>
+      <button class="link" id="payClose">关闭</button>
+    </div>
+    <div id="payBody"></div>
+    <button class="btn ok" id="payConfirm">✓ 加入「已买到」</button>
+  </div>
+</div>
+
+<!-- ============ 评估弹窗 ============ -->
+<div class="modal" id="modal">
+  <div class="sheet">
+    <div class="flex-between">
+      <b>冷静期评估</b>
+      <button class="link" id="modalClose">关闭</button>
+    </div>
+    <div id="modalBody"></div>
+    <div id="modalVerdict"></div>
+    <div class="actions" id="modalActions"></div>
+  </div>
+</div>
+
+<script>
+/* ---------------- 常量 / 数据 ---------------- */
+const KEY = 'lcc_data_v3';
+const SNAP_KEY = 'lcc_snapshot_v3';
+const CATS = ['数码电子','服饰鞋包','美妆个护','家居日用','吃喝美食','运动健康','娱乐订阅','书课学习','其他'];
+const CHANNELS = ['淘宝/天猫','京东','拼多多','抖音','小红书','直播间','微信/朋友圈','线下实体店','朋友安利','其他'];
+const SOURCE_LABELS = { need:'早就需要，想了很久', ad:'刷到 / 被种草', sale:'打折促销 / 限时', mood:'心情不好或无聊，想犒劳自己', peer:'看到别人有，我也想要' };
+const SOURCE_SHORT  = { need:'早就需要', ad:'被种草', sale:'促销', mood:'情绪', peer:'从众' };
+const IMPULSE_PENALTY = { need:0, ad:7, sale:7, mood:10, peer:10 };
+
+let state = { income: 0, budget: 0, goalName: '', goalAmount: 0, catBudgets: {}, items: [] };
+
+function load(){
+  try{
+    let s = localStorage.getItem(KEY);
+    if(!s) s = localStorage.getItem('lcc_data_v2');
+    if(!s) s = localStorage.getItem('lcc_data_v1');
+    if(s){ const d = JSON.parse(s); Object.assign(state, d); }
+  }catch(e){ console.warn('读取失败', e); }
+  if(!Array.isArray(state.items)) state.items = [];
+  if(!state.catBudgets || typeof state.catBudgets !== 'object') state.catBudgets = {};
+  // 旧数据迁移：旧 status 里没有 inbox，历史项保留其原状态
+}
+function save(){
+  try{
+    // 自动快照：保留「上一次」的数据，用于误操作后恢复
+    const prev = localStorage.getItem(KEY);
+    if(prev) localStorage.setItem(SNAP_KEY, JSON.stringify({ at: Date.now(), data: prev }));
+    localStorage.setItem(KEY, JSON.stringify(state));
+  }catch(e){ showToast('保存失败：' + e.message); }
+}
+function snapshot(){ try{ const s = localStorage.getItem(SNAP_KEY); return s ? JSON.parse(s) : null; }catch(e){ return null; } }
+
+/* ---------------- 工具 ---------------- */
+const $ = s => document.querySelector(s);
+const money = n => '¥' + (Math.round(n*100)/100).toLocaleString('zh-CN');
+const DAY = 86400000;
+const WORK_HOURS_PER_MONTH = 174;
+const STATUS_NAME = { inbox:'待处理', cooling:'冷静中', dropped:'已剔除', buy:'待购', bought:'已买到', skip:'已放弃' };
+function spentAt(it){ return it.boughtAt || it.decidedAt || it.createdAt || 0; }
+
+let toastTimer;
+function showToast(msg, actionLabel, actionFn){
+  const t = $('#toast');
+  t.innerHTML = '<span>'+esc(msg)+'</span>' + (actionLabel ? '<button class="toastbtn" type="button">'+esc(actionLabel)+'</button>' : '');
+  t.classList.add('on');
+  t.classList.toggle('has-action', !!actionLabel);
+  if(actionLabel){
+    const b = t.querySelector('.toastbtn');
+    if(b) b.onclick = function(){ clearTimeout(toastTimer); t.classList.remove('on'); t.classList.remove('has-action'); if(actionFn) actionFn(); };
+  }
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ t.classList.remove('on'); t.classList.remove('has-action'); }, actionLabel ? 5000 : 1800);
+}
+function hourlyWage(){ return state.income > 0 ? state.income / WORK_HOURS_PER_MONTH : 0; }
+function coolingDays(price){
+  if(!(price > 0)) return 3;                 // 未填价格：先冷静 3 天
+  if(price <= 100) return 1;
+  if(price <= 500) return 3;
+  if(price <= 2000) return 7;
+  return 30;
+}
+function fmtLeft(ms){
+  if(ms <= 0) return '冷静期已结束，可以评估了';
+  const d = Math.floor(ms/DAY), h = Math.floor((ms%DAY)/3600000);
+  if(d > 0) return '还需冷静 ' + d + ' 天' + (h>0?' '+h+' 小时':'');
+  const m = Math.floor((ms%3600000)/60000);
+  return '还需冷静 ' + Math.max(h,0) + ' 小时' + m + ' 分钟';
+}
+function weekStart(){ const d=new Date(); d.setHours(0,0,0,0); const dow=(d.getDay()+6)%7; d.setDate(d.getDate()-dow); return d.getTime(); }
+function monthStart(){ const d=new Date(); d.setHours(0,0,0,0); d.setDate(1); return d.getTime(); }
+function decidedAt(it){ return it.decidedAt || it.createdAt || 0; }
+function impulsePenalty(it){
+  if(it.source != null && IMPULSE_PENALTY[it.source] != null) return IMPULSE_PENALTY[it.source];
+  return it.emotion ? 10 : 0;
+}
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function timeAgo(t){
+  if(!t) return '';
+  const diff = Date.now()-t;
+  if(diff < DAY) return '今天';
+  if(diff < 2*DAY) return '昨天';
+  if(diff < 30*DAY) return Math.floor(diff/DAY)+'天前';
+  return new Date(t).toLocaleDateString('zh-CN');
+}
+function dstr(t){ const d=new Date(t); return (d.getMonth()+1)+'/'+d.getDate(); }
+function fmtDT(t){
+  if(!t) return '';
+  const d=new Date(t), now=new Date(), p=n=>String(n).padStart(2,'0');
+  const date=(d.getFullYear()===now.getFullYear() ? '' : d.getFullYear()+'年')+(d.getMonth()+1)+'月'+d.getDate()+'日';
+  return date+' '+p(d.getHours())+':'+p(d.getMinutes());
+}
+function metaRow(parts){
+  const cells = parts.filter(Boolean).map(x=>'<span>'+x+'</span>').join('');
+  return cells ? '<div class="meta">'+cells+'</div>' : '';
+}
+
+/* ---------------- 机会成本 ---------------- */
+function opportunityHTML(price, recurring){
+  if(!(price > 0)) return '';
+  const lines = [];
+  const w = hourlyWage();
+  if(w > 0){ const h=price/w; lines.push('相当于你工作约 <b>'+(h>=1?h.toFixed(1)+' 小时':Math.round(h*60)+' 分钟')+'</b>'); }
+  if(state.goalAmount > 0){ const p=price/state.goalAmount*100; lines.push('相当于存钱目标'+(state.goalName?'「'+esc(state.goalName)+'」':'')+'的 <b>'+(p>=1?p.toFixed(1):p.toFixed(2))+'%</b>'); }
+  if(recurring) lines.push('每月都付，一年合计 <b>'+money(price*12)+'</b>');
+  if(!lines.length) return '';
+  return '<div class="oc"><div style="margin-bottom:6px">💡 机会成本</div>'+lines.map(l=>'<div class="line">'+l+'</div>').join('')+'</div>';
+}
+
+/* ---------------- 打分 ---------------- */
+function scoreFrom(it, e){
+  const need = (e.need!=null?e.need:(it.need||3) - 1)/4 * 20;
+  const freq = (e.freq!=null?e.freq:(it.freq||3) - 1)/4 * 20;
+  const altV = (e.alt!=null?e.alt:(it.alt!=null?it.alt:1));
+  const alt  = [0,6,12][altV] || 0;
+  const pr   = it.price || 0;
+  const ratio = state.budget > 0 ? pr/state.budget : (pr>0?2:0);
+  const price = ratio<=0.05?16 : ratio<=0.1?14 : ratio<=0.25?11 : ratio<=0.5?7 : ratio<=1?3 : 0;
+  const sw = ((e.stillWant!=null?e.stillWant:(it.stillWant||3)) - 1)/4 * 20;
+  const ad = ((e.adapt!=null?e.adapt:(it.adapt||3)) - 1)/4 * 12;
+  const type = e.type || it.type;
+  const src = e.source || it.source;
+  const exp = type === 'exp' ? 3 : 0;
+  const emo = impulsePenalty({ source: src, emotion: it.emotion });
+  return Math.max(0, Math.min(100, Math.round(need + freq + alt + price + sw + ad + exp - emo)));
+}
+function verdictOf(s){
+  if(s >= 75) return {cls:'ok',   title:'✅ 建议购买', tip:'需求和频率都成立，可以下手，买后多用它。'};
+  if(s >= 55) return {cls:'warn', title:'⚠️ 再等等 / 找替代', tip:'不是必须。看看有没有更便宜的，或已有的替代品。'};
+  return           {cls:'bad',  title:'❌ 建议不买',   tip:'大概率是冲动。把它记进「省下的钱」，会更有成就感。'};
+}
+function barColor(s){ return s>=75 ? 'var(--ok)' : s>=55 ? 'var(--warn)' : 'var(--bad)'; }
+
+/* ---------------- 渲染：念头池 ---------------- */
+function itemBadges(it){
+  let h = '';
+  if(it.channel) h += '<span class="badge">'+esc(it.channel)+'</span>';
+  if(it.source) h += '<span class="badge">'+esc(SOURCE_SHORT[it.source]||'')+'</span>';
+  if(it.type==='exp') h += '<span class="badge exp">体验型</span>';
+  if(it.recurring) h += '<span class="badge sub">每月订阅</span>';
+  return h;
+}
+function renderPool(){
+  const wrap = $('#poolWrap');
+  const inbox   = state.items.filter(x=>x.status==='inbox').sort((a,b)=>b.createdAt-a.createdAt);
+  const cooling = state.items.filter(x=>x.status==='cooling').sort((a,b)=>(a.createdAt+a.coolDays*DAY)-(b.createdAt+b.coolDays*DAY));
+  const done    = state.items.filter(x=>['dropped','skip','bought'].includes(x.status)).sort((a,b)=>decidedAt(b)-decidedAt(a));
+
+  $('#poolSummary').textContent = '待处理 '+inbox.length+' · 冷静中 '+cooling.length;
+  const dot = $('#tabDot');
+  if(inbox.length){ dot.style.display='block'; dot.textContent = inbox.length; } else { dot.style.display='none'; }
+
+  if(!state.items.length){
+    wrap.innerHTML = '<div class="empty">念头池是空的 🧊<br>下次购物软件里又冒出一个念头，就来「捕捉」记下它。</div>';
+    return;
+  }
+
+  let html = '';
+
+  html += '<div class="sectionh"><span>🟡 待处理</span><span class="cnt">读一遍：还需要吗？</span></div>';
+  html += inbox.length ? inbox.map(cardInbox).join('')
+        : '<div class="muted" style="margin:0 4px 4px">清空啦，保持住 👍</div>';
+
+  if(cooling.length){
+    html += '<div class="sectionh"><span>🔵 冷静中</span><span class="cnt">时间会告诉你答案</span></div>';
+    html += cooling.map(cardCooling).join('');
+  }
+
+  if(done.length){
+    html += '<div class="sectionh"><span>⚪ 已处理</span><span class="cnt">'+done.length+' 条</span></div>';
+    html += done.map(cardDone).join('');
+  }
+  wrap.innerHTML = html;
+
+  // 给「待处理」卡片绑定拖动
+  document.querySelectorAll('#poolWrap .grip').forEach(g=>{
+    g.addEventListener('pointerdown', e=>{
+      const it = state.items.find(x=>x.id===g.dataset.grip); if(!it) return;
+      e.preventDefault();
+      startDrag(e, g.closest('.item'), it, g);
+    });
+  });
+}
+
+/* ---------------- 拖动分拣 ---------------- */
+let drag = null;
+function startDrag(e, card, it, grip){
+  const rect = card.getBoundingClientRect();
+  const ghost = card.cloneNode(true);
+  ghost.classList.add('dragghost');
+  ghost.style.width = rect.width + 'px';
+  ghost.style.left = rect.left + 'px';
+  ghost.style.top = rect.top + 'px';
+  document.body.appendChild(ghost);
+  drag = { it, card, ghost, offX: e.clientX - rect.left, offY: e.clientY - rect.top, zone: null };
+  card.classList.add('dragging');
+  document.body.classList.add('dragging-active');
+  try{ grip.setPointerCapture(e.pointerId); }catch(err){}
+  grip.addEventListener('pointermove', onDragMove);
+  grip.addEventListener('pointerup', onDragEnd);
+  grip.addEventListener('pointercancel', onDragEnd);
+  moveGhost(e.clientX, e.clientY);
+}
+function moveGhost(x, y){
+  drag.ghost.style.left = (x - drag.offX) + 'px';
+  drag.ghost.style.top  = (y - drag.offY) + 'px';
+  let hit = null;
+  document.querySelectorAll('.dropzone').forEach(z=>{
+    const r = z.getBoundingClientRect();
+    const inside = x>=r.left && x<=r.right && y>=r.top && y<=r.bottom;
+    z.classList.toggle('over', inside);
+    if(inside) hit = z.dataset.zone;
+  });
+  drag.zone = hit;
+}
+function onDragMove(e){ if(!drag) return; e.preventDefault(); moveGhost(e.clientX, e.clientY); }
+function onDragEnd(e){
+  if(!drag) return;
+  const grip = e.currentTarget;
+  grip.removeEventListener('pointermove', onDragMove);
+  grip.removeEventListener('pointerup', onDragEnd);
+  grip.removeEventListener('pointercancel', onDragEnd);
+  const it = drag.it, zone = drag.zone, card = drag.card, ghost = drag.ghost;
+  document.body.classList.remove('dragging-active');
+  document.querySelectorAll('.dropzone').forEach(z=>z.classList.remove('over'));
+  drag = null;
+  ghost.style.transition = 'transform .2s ease-in, opacity .2s';
+  if(zone){
+    const zEl = document.querySelector('.dropzone[data-zone="'+zone+'"]');
+    const gr = ghost.getBoundingClientRect(), zr = zEl.getBoundingClientRect();
+    const dx = (zr.left + zr.width/2) - (gr.left + gr.width/2);
+    const dy = (zr.top + zr.height/2) - (gr.top + gr.height/2);
+    ghost.style.transform = 'translate('+dx+'px,'+dy+'px) scale(.2)';
+    ghost.style.opacity = '0';
+    setTimeout(()=>{ ghost.remove(); if(card) card.classList.remove('dragging'); applyAction(zone==='drop'?'drop':'cool', it, {undo:true}); }, 190);
+  } else {
+    ghost.style.opacity = '0';
+    setTimeout(()=>{ ghost.remove(); if(card) card.classList.remove('dragging'); }, 190);
+  }
+}
+function cardInbox(it){
+  return '<div class="item" data-id="'+it.id+'">'
+    + '<div class="top"><div><div class="name">'+esc(it.name)+'</div>'
+    + '<div class="badges">'+itemBadges(it)+'<span class="badge inbox">待处理</span></div></div>'
+    + '<div class="price">'+(it.price>0?money(it.price):'<span class="muted" style="font-size:12px">未填价</span>')+'</div></div>'
+    + (it.why ? '<div class="note">'+esc(it.why)+'</div>' : '')
+    + metaRow(['🕒 记录于 '+fmtDT(it.createdAt)])
+    + '<div class="actions">'
+      + '<div class="grip" data-grip="'+it.id+'">✥ 按住拖到下方分拣</div>'
+      + '<button class="btn sm ghost" data-act="del" data-id="'+it.id+'">删除</button>'
+    + '</div></div>';
+}
+function cardCooling(it){
+  const left = (it.coolStart||it.createdAt||0) + it.coolDays*DAY - Date.now();
+  const ready = left <= 0;
+  return '<div class="item">'
+    + '<div class="top"><div><div class="name">'+esc(it.name)+'</div>'
+    + '<div class="badges">'+itemBadges(it)+'<span class="badge cool">'+(ready?'可以评估了':'冷静中')+'</span></div></div>'
+    + '<div class="price">'+(it.price>0?money(it.price):'<span class="muted" style="font-size:12px">未填价</span>')+'</div></div>'
+    + metaRow([
+        '🕒 记录于 '+fmtDT(it.createdAt),
+        it.coolStart ? ('🧊 进入冷静 '+fmtDT(it.coolStart)) : '',
+        '⏰ 到期 '+fmtDT((it.coolStart||it.createdAt) + it.coolDays*DAY)
+      ])
+    + '<div class="muted" style="margin-top:6px">'+fmtLeft(left)+'</div>'
+    + opportunityHTML(it.price, it.recurring)
+    + '<div class="actions">'
+      + '<button class="btn sm" data-act="eval" data-id="'+it.id+'">'+(ready?'开始评估':'提前评估')+'</button>'
+      + '<button class="btn sm ghost" data-act="drop" data-id="'+it.id+'">想清楚了 · 剔除</button>'
+      + '<button class="btn sm ghost" data-act="del" data-id="'+it.id+'">删除</button>'
+    + '</div></div>';
+}
+function cardDone(it){
+  const badge = '<span class="badge '+(it.status==='bought'?'bought':it.status==='skip'?'skip':'dropped')+'">'+STATUS_NAME[it.status]+'</span>';
+  let extra = '';
+  if(it.status==='bought') extra = '<div style="margin-top:10px"><div class="bar"><i style="width:'+it.score+'%;background:'+barColor(it.score)+'"></i></div><div class="muted" style="margin-top:5px">评分 '+it.score+' 分</div></div>';
+  else if(it.status==='skip') extra = '<div style="margin-top:10px"><div class="bar"><i style="width:'+it.score+'%;background:var(--bad)"></i></div><div class="muted" style="margin-top:5px">评分 '+it.score+' 分 · 省下 '+money(it.price)+'</div></div>';
+  else extra = '<div class="muted" style="margin-top:6px">省下 '+money(it.price)+'</div>';
+  let actions;
+  if(it.status==='dropped') actions = '<button class="btn sm ghost" data-act="revive" data-id="'+it.id+'">又想要了</button><button class="btn sm ghost" data-act="del" data-id="'+it.id+'">删除</button>';
+  else actions = '<button class="btn sm ghost" data-act="reopen" data-id="'+it.id+'">重新评估</button><button class="btn sm ghost" data-act="del" data-id="'+it.id+'">删除</button>';
+  return '<div class="item">'
+    + '<div class="top"><div><div class="name">'+esc(it.name)+'</div>'
+    + '<div class="badges">'+itemBadges(it)+badge+'</div></div>'
+    + '<div class="price">'+(it.price>0?money(it.price):'')+'</div></div>'
+    + metaRow([
+        '🕒 记录于 '+fmtDT(it.createdAt),
+        it.status==='bought' ? ('🛒 买到 '+fmtDT(spentAt(it))) : ('📌 决定 '+fmtDT(decidedAt(it)))
+      ])
+    + extra + '<div class="actions">'+actions+'</div></div>';
+}
+
+/* ---------------- 渲染：采购清单 ---------------- */
+function renderBuy(){
+  const plans = state.items.filter(x=>x.status==='buy').sort((a,b)=>decidedAt(b)-decidedAt(a));
+  const total = plans.reduce((s,x)=>s+(x.price||0),0);
+  $('#buySummary').textContent = plans.length ? (plans.length+' 件 · 合计 '+money(total)) : '';
+
+  let html = '';
+  if(plans.length){
+    // 按渠道分组，方便一趟买齐
+    const groups = {};
+    plans.forEach(it=>{ const k = it.channel || '未填渠道'; (groups[k] = groups[k] || []).push(it); });
+    const order = CHANNELS.filter(c=>groups[c]);
+    if(groups['未填渠道']) order.push('未填渠道');
+    Object.keys(groups).forEach(k=>{ if(order.indexOf(k) < 0) order.push(k); });
+
+    html += order.map(ch=>{
+      const list = groups[ch];
+      const sub = list.reduce((s,x)=>s+(x.price||0),0);
+      return '<div class="sectionh"><span>🏬 '+esc(ch)+'</span><span class="cnt">'+list.length+' 件 · '+money(sub)+'</span></div>'
+        + list.map(cardBuy).join('');
+    }).join('');
+
+    if(state.budget>0 && total>0) html += '<div class="hint">合计约占本月可自由支配的 '+Math.round(total/state.budget*100)+'%。</div>';
+  } else {
+    html = '<div class="empty">采购清单是空的 🛒<br>在「念头池」冷静后决定要买的，会出现在这里。</div>';
+  }
+  $('#buyWrap').innerHTML = html;
+
+  const got = state.items.filter(x=>x.status==='bought').sort((a,b)=>spentAt(b)-spentAt(a));
+  const gotSum = got.reduce((s,x)=>s+(x.price||0),0);
+  $('#boughtCard').style.display = got.length ? 'block' : 'none';
+  $('#boughtList').innerHTML = got.map(it=>'<div class="wkitem"><span>'+esc(it.name)
+      + '<br><span class="muted" style="font-size:11px">🛒 '+fmtDT(spentAt(it))+'</span></span>'
+      + '<span>'+money(it.price)+'</span></div>').join('')
+    + '<div class="muted" style="margin-top:8px">共 '+got.length+' 件 · '+money(gotSum)+'</div>';
+}
+function cardBuy(it){
+  return '<div class="item">'
+    + '<div class="top"><div><div class="name">'+esc(it.name)+'</div>'
+    + '<div class="badges"><span class="badge">'+esc(it.cat||'其他')+'</span>'
+    + (it.channel?'<span class="badge">'+esc(it.channel)+'</span>':'')
+    + '<span class="badge cool">待购</span>'
+    + (it.score!=null?'<span class="badge">评分 '+it.score+'</span>':'')
+    + '</div></div>'
+    + '<div class="price">'+(it.price>0?money(it.price):'')+'</div></div>'
+    + (it.why?'<div class="note">'+esc(it.why)+'</div>':'')
+    + metaRow([ it.manual ? ('🕒 手动加入 '+fmtDT(it.createdAt)) : ('🕒 记录于 '+fmtDT(it.createdAt)), '🛒 加入清单 '+fmtDT(decidedAt(it)) ])
+    + opportunityHTML(it.price, it.recurring)
+    + '<div class="actions">'
+      + '<button class="btn sm ok" data-act="got" data-id="'+it.id+'">✓ 已买到</button>'
+      + '<button class="btn sm ghost" data-act="notbuy" data-id="'+it.id+'">不买了</button>'
+    + '</div></div>';
+}
+
+/* ---------------- 渲染：捕捉页统计 ---------------- */
+function renderCapture(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const n = state.items.filter(x=>(x.createdAt||0) >= today.getTime()).length;
+  const inbox = state.items.filter(x=>x.status==='inbox').length;
+  $('#todayCount').innerHTML = '今天已捕捉 <b>'+n+'</b> 个念头' + (inbox? ' · 待处理 <b>'+inbox+'</b> 个' : '');
+}
+
+/* ---------------- 渲染：复盘 ---------------- */
+function renderReview(){
+  const ws = weekStart(), wEnd = ws + 7*DAY;
+  $('#weekRange').textContent = dstr(ws) + ' – ' + dstr(wEnd-1);
+  let logged=0, dropped=0, cooled=0, saved=0;
+  state.items.forEach(it=>{
+    if((it.createdAt||0) >= ws) logged++;
+    if(it.status==='dropped' && decidedAt(it) >= ws){ dropped++; saved += it.price; }
+    if(it.status==='cooling' && (it.coolStart||it.createdAt||0) >= ws) cooled++;
+    if(it.status==='skip' && decidedAt(it) >= ws) saved += it.price;
+  });
+  $('#w-logged').textContent = logged + ' 个';
+  $('#w-dropped').textContent = dropped + ' 个';
+  $('#w-cooled').textContent = cooled + ' 个';
+  $('#w-saved').textContent = money(saved);
+
+  // 本周预算：只算「已购买」
+  const wb = $('#weekBudget');
+  let wBought = 0;
+  state.items.forEach(it=>{ if(it.status==='bought' && spentAt(it) >= ws) wBought += it.price; });
+  if(state.budget > 0){
+    const weekly = state.budget*12/52, pct = Math.min(100, wBought/weekly*100), over = wBought > weekly;
+    wb.innerHTML = '<div class="cbrow"><div class="cbhead"><span>本周购物预算</span><span class="amt'+(over?' over':'')+'">'+money(wBought)+' / '+money(weekly)+'</span></div>'
+      + '<div class="bar" style="height:10px"><i style="width:'+pct+'%;background:'+(over?'var(--bad)':'var(--ok)')+'"></i></div>'
+      + '<div class="muted" style="margin-top:6px">'+(over?'本周已超预算，接下来先只捕捉、不购买。':'预算内，继续保持。')+'</div></div>';
+  } else {
+    wb.innerHTML = '<div class="hint">去「捕捉」页的参数里填「每月可自由支配的钱」，这里就能显示每周预算进度。</div>';
+  }
+
+  // 分类预算
+  const ms = monthStart(), spent = {};
+  state.items.forEach(it=>{ if(it.status==='bought' && spentAt(it) >= ms) spent[it.cat] = (spent[it.cat]||0) + it.price; });
+  const keys = CATS.filter(c => (state.catBudgets[c]||0) > 0 || spent[c]);
+  $('#catBudgetList').innerHTML = keys.length ? keys.map(c=>{
+    const bud = state.catBudgets[c]||0, sp = spent[c]||0;
+    if(bud <= 0) return '<div class="cbrow"><div class="cbhead"><span>'+esc(c)+'</span><span class="amt">本月 '+money(sp)+'（未设预算）</span></div></div>';
+    const pct = Math.min(100, sp/bud*100), over = sp > bud;
+    return '<div class="cbrow"><div class="cbhead"><span>'+esc(c)+'</span><span class="amt'+(over?' over':'')+'">'+money(sp)+' / '+money(bud)+'</span></div>'
+      + '<div class="bar"><i style="width:'+pct+'%;background:'+(over?'var(--bad)':'var(--accent)')+'"></i></div></div>';
+  }).join('') : '<div class="muted">还没设置分类预算，也没本月支出。</div>';
+
+  renderChannels();
+}
+function renderChannels(){
+  const ws = weekStart(), wk = {}, all = {};
+  state.items.forEach(it=>{
+    if(!it.channel) return;
+    all[it.channel] = (all[it.channel]||0)+1;
+    if((it.createdAt||0) >= ws) wk[it.channel] = (wk[it.channel]||0)+1;
+  });
+  const keys = Object.keys(wk).sort((a,b)=>wk[b]-wk[a]);
+  $('#channelList').innerHTML = keys.length
+    ? keys.map(c=>'<div class="flex-between" style="font-size:14px;margin:6px 0"><span>'+esc(c)+'</span><span>'+wk[c]+' 个</span></div>').join('')
+    : '<div class="muted">本周还没有记录。</div>';
+  const ak = Object.keys(all).sort((a,b)=>all[b]-all[a]);
+  $('#channelTop').innerHTML = ak.length ? '📌 累计最常勾引你的渠道：<b>'+esc(ak[0])+'</b>（'+all[ak[0]]+' 个）' : '';
+}
+
+/* ---------------- 渲染：成绩 ---------------- */
+function renderStats(){
+  let saved=0, inbox=0, boughtN=0, boughtSum=0, decided=0, filtered=0;
+  const cats = {};
+  state.items.forEach(it=>{
+    if(it.status==='dropped'){ saved += it.price; decided++; filtered++; }
+    if(it.status==='skip'){ saved += it.price; decided++; filtered++; }
+    if(it.status==='buy'){ decided++; }
+    if(it.status==='bought'){ boughtN++; boughtSum += it.price; decided++; cats[it.cat]=(cats[it.cat]||0)+it.price; }
+  });
+  $('#s-saved').textContent = money(saved);
+  $('#s-inbox').textContent = state.items.filter(x=>x.status==='inbox').length + ' 个';
+  $('#s-bought').textContent = boughtN + ' 件 / ' + money(boughtSum);
+  $('#s-rate').textContent = decided ? Math.round(filtered/decided*100) + '%' : '—';
+
+  const gb = $('#goalBox');
+  if(state.goalAmount > 0){
+    const pct = Math.min(100, saved/state.goalAmount*100);
+    gb.innerHTML = '<div class="goalbox"><div class="gname">🎯 '+(state.goalName?esc(state.goalName):'存钱目标')+'</div>'
+      + '<div class="grow"><span>已用「省下的钱」填了 '+money(saved)+'</span><span>目标 '+money(state.goalAmount)+'</span></div>'
+      + '<div class="bar" style="height:10px"><i style="width:'+pct+'%;background:var(--ok)"></i></div>'
+      + '<div class="gname" style="margin-top:6px;color:var(--ok)">'+pct.toFixed(1)+'%</div></div>';
+  } else gb.innerHTML = '';
+
+  const ck = Object.keys(cats);
+  $('#catList').innerHTML = ck.length
+    ? ck.sort((a,b)=>cats[b]-cats[a]).map(k=>'<div class="flex-between" style="font-size:14px;margin:6px 0"><span>'+esc(k)+'</span><span>'+money(cats[k])+'</span></div>').join('')
+    : '还没有已购买记录。';
+
+  const show = [];
+  if(state.income>0) show.push('月收入 '+money(state.income)+'（时薪约 '+money(hourlyWage())+'）');
+  if(state.budget>0) show.push('可自由支配 '+money(state.budget)+'/月');
+  if(state.goalAmount>0) show.push('目标 '+money(state.goalAmount));
+  $('#settingsShow').textContent = show.length ? show.join(' · ') : '未设定参数，机会成本与价格压力将按保守方式估算。';
+
+  const lb = $('#lastBackup');
+  if(lb) lb.innerHTML = state.lastBackupAt
+    ? '上次导出备份：<b>'+fmtDT(state.lastBackupAt)+'</b>'
+    : '⚠️ 还没有导出过备份，建议现在就导出一份，存到手机「文件」里。';
+}
+
+/* ---------------- 捕捉表单 ---------------- */
+const form = { source:null };
+document.querySelectorAll('#page-add .seg[data-field]').forEach(seg=>{
+  seg.addEventListener('click', e=>{
+    const btn = e.target.closest('button'); if(!btn) return;
+    Array.from(seg.children).forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    form.source = btn.dataset.v;
+  });
+});
+$('#f-price').addEventListener('input', updateCapturePreview);
+function updateCapturePreview(){
+  const p = parseFloat($('#f-price').value) || 0;
+  $('#ocBox').innerHTML = (p>0 && (state.budget>0 || state.income>0 || state.goalAmount>0)) ? opportunityHTML(p, false) : '';
+}
+$('#addBtn').addEventListener('click', ()=>{
+  const name = $('#f-name').value.trim();
+  if(!name){ showToast('写下想买的东西就行～'); $('#f-name').focus(); return; }
+  const price = parseFloat($('#f-price').value) || 0;
+  state.items.push({
+    id: 'i'+Date.now()+Math.random().toString(36).slice(2,6),
+    name, price,
+    channel: $('#f-channel').value || '',
+    cat: $('#f-cat').value || '其他',
+    source: form.source || null,
+    why: $('#f-why').value.trim(),
+    type: null, need:null, freq:null, alt:null,
+    stillWant:null, adapt:null, score:null,
+    createdAt: Date.now(), status: 'inbox'
+  });
+  save(); resetCapture(); renderAll();
+  const n = state.items.filter(x=>x.status==='inbox').length;
+  showToast('已捕捉 ✅ '+fmtDT(Date.now())+' · 待处理 '+n+' 个');
+});
+function resetCapture(){
+  $('#f-name').value=''; $('#f-price').value=''; $('#f-why').value='';
+  $('#f-channel').selectedIndex=0; $('#f-cat').selectedIndex=0;
+  document.querySelectorAll('#page-add .seg[data-field]').forEach(seg=>Array.from(seg.children).forEach(b=>b.classList.remove('on')));
+  form.source=null; updateCapturePreview();
+}
+$('#f-name').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); $('#addBtn').click(); } });
+
+$('#saveSettings').addEventListener('click', ()=>{
+  state.income = parseFloat($('#f-income').value)||0;
+  state.budget = parseFloat($('#f-budget').value)||0;
+  state.goalName = $('#f-goalname').value.trim();
+  state.goalAmount = parseFloat($('#f-goalamount').value)||0;
+  save(); renderAll(); updateCapturePreview(); showToast('参数已保存');
+});
+$('#saveCatBudgets').addEventListener('click', ()=>{
+  const nb = {};
+  document.querySelectorAll('#catBudgetForm input[data-cb]').forEach(inp=>{ const v=parseFloat(inp.value); if(v>0) nb[inp.dataset.cb]=v; });
+  state.catBudgets = nb; save(); renderReview(); showToast('分类预算已保存');
+});
+function renderCatBudgetForm(){
+  $('#catBudgetForm').innerHTML = CATS.map(c=>'<label>'+esc(c)+'（元/月）</label>'
+    + '<input data-cb="'+esc(c)+'" type="number" inputmode="decimal" placeholder="0" value="'+(state.catBudgets[c]||'')+'">').join('');
+}
+
+/* ---------------- 评估弹窗 ---------------- */
+let current = null, ev = {};
+const OPT = {
+  stillWant: [[1,'不想要了'],[2,'欲望变弱'],[3,'一般'],[4,'还挺想'],[5,'非常想']],
+  adapt:     [[1,'肯定后悔'],[2,'大概会闲置'],[3,'说不好'],[4,'应该还在用'],[5,'几乎天天用']],
+  need:      [[1,'没影响'],[2,'很小'],[3,'一般'],[4,'比较大'],[5,'离不开']],
+  freq:      [[1,'几乎不用'],[2,'每月一次'],[3,'每周一次'],[4,'每周几次'],[5,'每天用']],
+  alt:       [[0,'完全能替代'],[1,'部分替代'],[2,'没有替代']],
+  type:      [['exp','体验型'],[ 'thing','物品型']],
+  source:    [['need','早就需要'],['ad','刷到/被种草'],['sale','打折促销'],['mood','心情不好/无聊'],['peer','看到别人有']]
+};
+function segHTML(key, val){
+  return '<div class="seg" data-eval="'+key+'">' + OPT[key].map(o=>
+    '<button type="button" data-v="'+o[0]+'"'+(val!=null && String(val)===String(o[0])?' class="on"':'')+'>'+o[1]+'</button>').join('') + '</div>';
+}
+function openModal(id){
+  current = state.items.find(x=>x.id===id);
+  if(!current) return;
+  ev = { stillWant: current.stillWant, adapt: current.adapt, need: current.need, freq: current.freq,
+         alt: current.alt, type: current.type, source: current.source };
+  const left = (current.coolStart||current.createdAt||0) + current.coolDays*DAY - Date.now();
+
+  $('#modalBody').innerHTML =
+    '<div style="font-weight:600;font-size:17px">'+esc(current.name)+(current.price>0?' · '+money(current.price):'')+(current.recurring?'/月':'')+'</div>'
+    + '<div class="muted" style="margin-top:2px">'+[current.channel, current.source?SOURCE_LABELS[current.source]:'', '🕒 '+fmtDT(current.createdAt)].filter(Boolean).join(' · ')+'</div>'
+    + (left<=0 ? '' : '<div class="hint" style="margin-top:10px">还没到冷静期结束（'+fmtLeft(left)+'）。提前评估容易低估冲动，建议再等等。</div>')
+    + opportunityHTML(current.price, current.recurring)
+    + '<label>分类</label><select id="evalCat">'+CATS.map(c=>'<option'+(c===current.cat?' selected':'')+'>'+c+'</option>').join('')+'</select>'
+    + '<div class="hint" style="margin-top:12px">① ② 必答就能出结果；③～⑦ 可选，答得越全越准。</div>'
+    + '<label>① 冷静后，你现在还想买吗？</label>' + segHTML('stillWant', ev.stillWant)
+    + '<label>② 想象两个月后，还会觉得这笔钱花得值吗？</label>' + segHTML('adapt', ev.adapt)
+    + '<label>③ 没有它，对生活/工作影响大吗？</label>' + segHTML('need', ev.need)
+    + '<label>④ 预计多久用一次？</label>' + segHTML('freq', ev.freq)
+    + '<label>⑤ 有能替代它的东西吗？</label>' + segHTML('alt', ev.alt)
+    + '<label>⑥ 体验型还是物品型？</label>' + segHTML('type', ev.type)
+    + '<label>⑦ 当初的念头从哪来？</label>' + segHTML('source', ev.source);
+
+  document.querySelectorAll('#modalBody .seg[data-eval]').forEach(seg=>{
+    const key = seg.dataset.eval;
+    seg.addEventListener('click', e=>{
+      const b = e.target.closest('button'); if(!b) return;
+      Array.from(seg.children).forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');
+      ev[key] = (key==='type'||key==='source') ? b.dataset.v : Number(b.dataset.v);
+      showVerdict();
+    });
+  });
+  showVerdict();
+  $('#modal').classList.add('on');
+}
+function showVerdict(){
+  const box = $('#modalVerdict'), acts = $('#modalActions');
+  if(ev.stillWant==null || ev.adapt==null){ box.innerHTML=''; acts.innerHTML=''; return; }
+  const s = scoreFrom(current, ev), v = verdictOf(s);
+  box.innerHTML = '<div class="verdict '+v.cls+'">'+v.title+' · '+s+' 分<small>'+v.tip+'</small></div>';
+  acts.innerHTML =
+      '<button class="btn sm bad" data-act="skip" data-id="'+current.id+'">决定：不买</button>'
+    + '<button class="btn sm ok" data-act="buy" data-id="'+current.id+'">决定：买</button>'
+    + '<button class="btn sm ghost" data-act="later" data-id="'+current.id+'">再等 7 天</button>';
+}
+$('#modalClose').addEventListener('click', ()=> $('#modal').classList.remove('on'));
+$('#modal').addEventListener('click', e=>{ if(e.target.id==='modal') $('#modal').classList.remove('on'); });
+
+/* ---------------- 确认已买到（记录实际价格） ---------------- */
+let payItem = null, payPrevPrice = 0;
+function openPay(it){
+  payItem = it; payPrevPrice = it.price || 0;
+  $('#payBody').innerHTML =
+    '<div style="font-weight:600;font-size:17px;margin-top:6px">'+esc(it.name)+'</div>'
+    + '<div class="muted" style="margin-top:2px">'+[it.channel, it.cat].filter(Boolean).map(esc).join(' · ')+'</div>'
+    + '<label>实际花了多少？（按小票填，预算更准）</label>'
+    + '<input id="payPrice" type="number" inputmode="decimal" value="'+(it.price>0?it.price:'')+'" placeholder="0">';
+  $('#paymodal').classList.add('on');
+  setTimeout(()=>{ const el=$('#payPrice'); if(el) el.focus(); }, 50);
+}
+function closePay(){ $('#paymodal').classList.remove('on'); payItem = null; }
+$('#payClose').addEventListener('click', closePay);
+$('#paymodal').addEventListener('click', e=>{ if(e.target.id==='paymodal') closePay(); });
+$('#payConfirm').addEventListener('click', ()=>{
+  if(!payItem) return;
+  const v = parseFloat($('#payPrice').value);
+  if(isNaN(v) || v < 0){ showToast('填一下实际花费'); return; }
+  const it = payItem, prev = payPrevPrice;
+  it.price = v; it.status = 'bought'; it.boughtAt = Date.now();
+  save(); renderAll(); closePay(); go('page-buy');
+  showToast('已买到，计入支出 ' + money(v), '撤销', ()=>{ it.status='buy'; it.boughtAt=null; it.price=prev; save(); renderAll(); showToast('已撤销'); });
+});
+
+/* ---------------- 手动加入采购清单 ---------------- */
+$('#manualAdd').addEventListener('click', ()=>{
+  const name = $('#m-name').value.trim();
+  if(!name){ showToast('写下要买什么'); return; }
+  state.items.push({
+    id: 'i'+Date.now()+Math.random().toString(36).slice(2,6),
+    name, price: parseFloat($('#m-price').value) || 0,
+    channel: $('#m-channel').value || '', cat: $('#m-cat').value || '其他',
+    source:null, why:'', type:null, need:null, freq:null, alt:null,
+    stillWant:null, adapt:null, score:null, manual:true,
+    createdAt: Date.now(), decidedAt: Date.now(), status: 'buy'
+  });
+  save();
+  $('#m-name').value=''; $('#m-price').value=''; $('#m-channel').selectedIndex=0; $('#m-cat').selectedIndex=0;
+  renderAll(); go('page-buy'); showToast('已加入采购清单 🛒');
+});
+
+/* ---------------- 统一动作 ---------------- */
+function applyAction(act, it, opts){
+  opts = opts || {};
+  const undoLabel = opts.undo ? '撤销' : null;
+  const savedAmount = it.price>0 ? money(it.price) : '一笔钱';
+
+  if(act==='cool'){
+    it.status='cooling'; it.coolStart=Date.now(); it.coolDays=coolingDays(it.price);
+    save(); renderAll(); go('page-pool');
+    showToast('已进入冷静期 '+it.coolDays+' 天，到点再来判断', undoLabel, ()=>{ it.status='inbox'; it.coolStart=null; save(); renderAll(); showToast('已撤销'); });
+    return;
+  }
+  if(act==='drop'){
+    it.status='dropped'; it.decidedAt=Date.now(); save(); renderAll();
+    showToast('已剔除，省下 '+savedAmount+' 👍', undoLabel, ()=>{ it.status='inbox'; it.decidedAt=null; save(); renderAll(); showToast('已撤销，放回待处理'); });
+    return;
+  }
+  if(act==='revive'){
+    it.status='inbox'; it.decidedAt=null; save(); renderAll(); showToast('已放回待处理'); go('page-pool'); return;
+  }
+  if(act==='eval' || act==='reopen'){ openModal(it.id); return; }
+  if(act==='del'){
+    state.items = state.items.filter(x=>x.id!==it.id); save(); renderAll(); showToast('已删除'); return;
+  }
+  if(act==='got'){ openPay(it); return; }
+  if(act==='notbuy'){
+    it.status='skip'; it.decidedAt=Date.now(); save(); renderAll(); go('page-buy');
+    showToast('不买了，省下 '+savedAmount+' 👏', '撤销', ()=>{ it.status='buy'; it.decidedAt=null; save(); renderAll(); showToast('已撤销'); });
+    return;
+  }
+  if(act==='skip' || act==='buy'){
+    const catEl = $('#evalCat');
+    Object.assign(it, { cat: (catEl && catEl.value) || it.cat || '其他', need: ev.need, freq: ev.freq, alt: ev.alt,
+      type: ev.type, source: ev.source, stillWant: ev.stillWant, adapt: ev.adapt, score: scoreFrom(it, ev), decidedAt: Date.now() });
+    it.status = act==='skip' ? 'skip' : 'buy';
+    save(); renderAll(); $('#modal').classList.remove('on');
+    showToast(act==='skip' ? ('已决定不买，省下 '+savedAmount+' 👏') : '已加入采购清单 🛒');
+    if(act==='buy') go('page-buy');
+    return;
+  }
+  if(act==='later'){
+    it.status='cooling'; it.coolStart=Date.now(); it.coolDays=7;
+    it.stillWant=null; it.adapt=null; it.score=null;
+    save(); renderAll(); $('#modal').classList.remove('on'); showToast('再等 7 天，真正的需要经得起等待'); return;
+  }
+}
+document.addEventListener('click', e=>{
+  const btn = e.target.closest('[data-act]'); if(!btn) return;
+  const it = state.items.find(x=>x.id===btn.dataset.id); if(!it) return;
+  applyAction(btn.dataset.act, it);
+});
+
+/* ---------------- 备份 / 恢复 ---------------- */
+function emptyState(){ return { income:0, budget:0, goalName:'', goalAmount:0, catBudgets:{}, items:[], lastBackupAt:0 }; }
+function fileStamp(){ const d=new Date(), p=n=>String(n).padStart(2,'0'); return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes()); }
+function applyImport(d){
+  if(!d || !Array.isArray(d.items)) throw new Error('格式不对');
+  state = Object.assign(emptyState(), d);
+  save(); renderAll(); showToast('导入成功，共 '+state.items.length+' 条记录');
+}
+async function exportFile(){
+  const data = JSON.stringify(state);
+  const name = '理性消费备份-'+fileStamp()+'.json';
+  try{
+    const file = new File([data], name, { type:'application/json' });
+    if(navigator.canShare && navigator.canShare({ files:[file] })){
+      try{
+        await navigator.share({ files:[file], title:'理性消费备份' });
+        state.lastBackupAt = Date.now(); save(); renderStats(); showToast('备份已导出');
+        return;
+      }catch(err){ if(err && err.name === 'AbortError') return; }
+    }
+  }catch(e){}
+  try{
+    const url = URL.createObjectURL(new Blob([data], { type:'application/json' }));
+    const a = document.createElement('a'); a.href=url; a.download=name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 3000);
+  }catch(e){ $('#ioBox').value = data; showToast('已放入文本框，请长按复制保存'); return; }
+  state.lastBackupAt = Date.now(); save(); renderStats(); showToast('备份文件已生成');
+}
+$('#shareBtn').addEventListener('click', exportFile);
+$('#importFileBtn').addEventListener('click', ()=> $('#fileInput').click());
+$('#fileInput').addEventListener('change', function(){
+  const f = this.files && this.files[0]; if(!f) return;
+  const self = this;
+  const r = new FileReader();
+  r.onload = function(){
+    try{
+      const d = JSON.parse(r.result);
+      if(confirm('导入将覆盖当前数据，确定？')) applyImport(d);
+    }catch(err){ showToast('文件格式不对'); }
+    self.value = '';
+  };
+  r.readAsText(f);
+});
+$('#copyBtn').addEventListener('click', ()=>{
+  $('#ioBox').value = JSON.stringify(state); $('#ioBox').select();
+  try{ document.execCommand('copy'); }catch(e){}
+  showToast('已复制（也可长按文本框复制）');
+});
+$('#pasteImportBtn').addEventListener('click', ()=>{
+  const txt = $('#ioBox').value.trim();
+  if(!txt){ showToast('先把备份文本粘贴到框里'); return; }
+  try{ const d = JSON.parse(txt); if(confirm('导入将覆盖当前数据，确定？')) applyImport(d); }
+  catch(err){ showToast('导入失败：'+err.message); }
+});
+$('#restoreBtn').addEventListener('click', ()=>{
+  const s = snapshot();
+  if(!s){ showToast('没有可恢复的上一版'); return; }
+  if(confirm('恢复到 '+fmtDT(s.at)+' 的状态？当前数据会被覆盖。')){
+    try{ const d = JSON.parse(s.data); state = Object.assign(emptyState(), d); save(); renderAll(); showToast('已恢复上一版'); }
+    catch(err){ showToast('恢复失败'); }
+  }
+});
+$('#wipeBtn').addEventListener('click', ()=>{
+  if(confirm('确定清空全部记录？可用「恢复上一版」找回。')){ state.items=[]; save(); renderAll(); showToast('已清空'); }
+});
+
+/* ---------------- 导航 ---------------- */
+function go(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on', p.id===page));
+  document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('on', b.dataset.page===page));
+  if(page==='page-review') renderReview();
+  if(page==='page-stats') renderStats();
+  if(page==='page-pool') renderPool();
+  if(page==='page-add') renderCapture();
+  if(page==='page-buy') renderBuy();
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('.tabbar button').forEach(b=> b.addEventListener('click', ()=> go(b.dataset.page)));
+
+/* ---------------- 启动 ---------------- */
+function renderAll(){ renderPool(); renderBuy(); renderCapture(); renderReview(); renderStats(); renderCatBudgetForm(); }
+(function initSelect(){
+  $('#f-cat').innerHTML = '<option value="">未分类</option>' + CATS.map(c=>'<option>'+c+'</option>').join('');
+  $('#f-channel').innerHTML = '<option value="">请选择渠道…</option>' + CHANNELS.map(c=>'<option>'+c+'</option>').join('');
+  $('#m-cat').innerHTML = CATS.map(c=>'<option>'+c+'</option>').join('');
+  $('#m-channel').innerHTML = '<option value="">未填渠道</option>' + CHANNELS.map(c=>'<option>'+c+'</option>').join('');
+})();
+load(); renderAll(); updateCapturePreview();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>
